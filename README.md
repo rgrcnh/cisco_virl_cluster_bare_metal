@@ -1,15 +1,14 @@
-# Build a Virl Cluster on Bare Metal Intallation With only two physical ethernets. 
+# Build a Cisco VIRL Cluster on Bare Metal Intallation with two physical interfaces. 
 
-These are my experience in building a Cisco Virl Cluster, with two machines, using the bare metal VIRL release and two physical interfaces, without any external resource.
+These are my experience building a Cisco Virl Cluster, with two machines on the cluster, using the bare metal VIRL release and two physical ethernet interfaces, without any external resource.
 
-On this cenario, the eth0 of each host will be connect on your LAN and eth1 will be back-to-back. We will be creating some VLANs to connect the FLAT, FLAT1 and SNAT networks over the tied interface. The internalnet_port will be the binded to the physical eth1 (using untagged frames), so it will be ever up.
+On this cenario, the eth0 of each host will be connect on your LAN and eth1 will be linked toghther (back-to-back). We will be creating some VLANs to connect the FLAT, FLAT1 and SNAT networks over the linked interfaces. The internalnet_port will be the binded to the physical eth1 (using untagged frames), so it will be ever up.
 
 So, let's go...
 
+1 -  Connect back-to-back the two hosts on the second interface eth1. The main interface eth0 of each host should be attached to your LAN, as usual. Beware of using a cross-cable if your hosts does not support MID-X.
 
-1 -  Connect back-to-back the two hosts on the second interface eth1 (the main interface eth0 of each should be attached to your LAN). Beware of using a cross-cable, if yours hosts does not support MID-X.
-
-2 - Configure your VIRL controller, with the following interfaces (editing /etc/virl.ini), and change the respective lines indicated bellow.
+2 - Configure your VIRL controller with the following interfaces (editing /etc/virl.ini), and change the respective lines indicated bellow.
 
 ```
 # those lines are not in sequence on /etc/virl.ini
@@ -25,7 +24,7 @@ compute1_l3_port: eth3
 compute1_internalnet_port: eth1
 ```
 
-2.1 -  these are my virl.ini computer1 specific configuration, on the controller.
+2.1 -  these are my /etc/virl.ini computer1 specific configuration section, on the controller.
 Change XXXX to your LAN values.
 
 ```
@@ -52,8 +51,9 @@ compute1_internalnet_port: eth1
 compute1_internalnet_ip: 172.16.10.241
 ```
 
-3 - put those lines on /etc/rc.local
-Those commands will start the VLANs up, using interfaces named as eth2, eth3 and eth4.
+3 - Insert those lines on /etc/rc.local (beware to be inserted before `exit 0` at the rc.local end)
+Those commands will start the VLANs up, calling `ifup` automatically.
+The trick here is preserve the names eth2, eth3 and eth4, even if being VLAN interfaces.
 
 ```
 sudo ip link add link eth1 name eth2 type vlan id 20
@@ -70,7 +70,7 @@ virl rehost
 5 - reboot the controller and check if eth0, eth1, eth2, eth3 and eth4 are all up.
 
 
-6 - Follow the Cisco/Virl [Cluste configuration Manual](http://virl-dev-innovate.cisco.com/virl.cluster.php), and stop at step 12 of "Customizing the Compute Node" section.
+6 - Follow the Cisco/Virl [Cluster configuration Manual](http://virl-dev-innovate.cisco.com/virl.cluster.php), and stop at step 12 of "Customizing the Compute Node" section.
 
 7 - Use the following configuration on computer1 for /etc/network/interfaces. Change your IP external address, mask, gateway and DNSs, according your LAN.
 
@@ -111,7 +111,7 @@ iface eth0 inet static
     dns-nameservers *XXX YYYY #Change Here*
 ```
 
-8 - Insert those lines on /etc/rc.local of computer1
+8 - Insert those lines on /etc/rc.local of computer1, pretty like step 3.
 
 ```
 sudo ip link add link eth1 name eth2 type vlan id 20
@@ -132,9 +132,11 @@ physical_interface_mappings=flat:eth4,flat1:eth2,ext-net:eth3
 
 10 - restart the computer1
 
-11 - follow the steps of Cisco/Virl [Manual] (http://virl-dev-innovate.cisco.com/virl.cluster.php),  at step 13 of "Customizing the Compute Node" until the end. 
+11 - follow the steps 13 and beyond of Cisco/Virl [Cluster Installation Manual](http://virl-dev-innovate.cisco.com/virl.cluster.php). 
 
 12 - It should be working now.
+The tests should result as follow. Reboot the controller, if needed.
+
 ``` 
 virl@virl:~$ neutron agent-list
 +--------------------------------------+--------------------+----------+-------+----------------+---------------------------+
