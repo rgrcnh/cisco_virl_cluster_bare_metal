@@ -1,4 +1,4 @@
-# Build a Cisco VIRL Cluster on Bare Metal Intallation with two physical interfaces. 
+# Build a Cisco VIRL Cluster on Bare Metal Installation with two physical interfaces. 
 
 These are my experience building a Cisco Virl Cluster, with two machines on the cluster, using the bare metal VIRL release and two physical ethernet interfaces, without any external resource.
 
